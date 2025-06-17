@@ -10,9 +10,9 @@
 A comprehensive implementation and tutorial for RMS (Root Mean Square) Normalization, the normalization technique powering modern large language models like **Mistral**, **PaLM**, and other state-of-the-art transformers. **RMS Norm uses 37.5% fewer FLOPs than LayerNorm** while maintaining comparable performance.
 
 
-[![YouTube Tutorial](https://img.shields.io/badge/YouTube-Tutorial-red?logo=youtube)](https://youtube.com/watch?v=YOUR_VIDEO_ID)
+[![YouTube Tutorial](https://img.shields.io/badge/YouTube-Tutorial-red?logo=youtube)](https://www.youtube.com/watch?v=BdZ-bV86h8o)
 
-**🎥 [Watch the Full Tutorial on YouTube](https://youtube.com/watch?v=YOUR_VIDEO_ID)**
+**🎥 [Watch the Full Tutorial on YouTube](https://www.youtube.com/watch?v=BdZ-bV86h8o)**
 
 
 ## 🎯 Overview
