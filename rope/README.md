@@ -7,9 +7,9 @@
 
 > **Complete implementation of Rotary Positional Encoding (RoPE) - the technique powering modern language models like GPT-4, LLaMA, ChatGPT, and Mistral 7B!**
 
-[![YouTube Tutorial](https://img.shields.io/badge/YouTube-Tutorial-red?logo=youtube)](https://youtube.com/watch?v=YOUR_VIDEO_ID)
+[![YouTube Tutorial](https://img.shields.io/badge/YouTube-Tutorial-red?logo=youtube)](https://youtu.be/Mwyj1DmduCM)
 
-**🎥 [Watch the Full Tutorial on YouTube](https://youtube.com/watch?v=YOUR_VIDEO_ID)**
+**🎥 [Watch the Full Tutorial on YouTube](https://youtu.be/Mwyj1DmduCM)**
 
 
 
