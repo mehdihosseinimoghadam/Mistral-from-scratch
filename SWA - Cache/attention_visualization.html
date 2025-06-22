@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attention Mechanisms Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #212529;
+            min-height: 100vh;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+        .intro, .explanation {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(116, 185, 255, 0.3);
+        }
+        .visualization {
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+        button, input[type="range"] {
+            padding: 12px 20px;
+            margin: 8px;
+            border-radius: 25px;
+            border: 2px solid #3498db;
+            cursor: pointer;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(116, 185, 255, 0.3);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(116, 185, 255, 0.4);
+        }
+        input[type="range"] {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            height: 8px;
+            border-radius: 5px;
+            outline: none;
+        }
+        .tooltip {
+            position: absolute;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .code-block {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
+            border-left: 4px solid #3498db;
+        }
+        .code-block h4 {
+            color: #74b9ff;
+            text-align: left;
+            margin-top: 0;
+            border-bottom: 2px solid #34495e;
+            padding-bottom: 10px;
+        }
+        .code-block pre {
+            margin: 0;
+        }
+        .code-block .keyword { color: #e74c3c; }
+        .code-block .comment { color: #95a5a6; }
+        .code-block .number { color: #f39c12; }
+        .code-block .string { color: #2ecc71; }
+        .code-block .function { color: #3498db; }
+        .code-block .class { color: #9b59b6; }
+        .real-world-example {
+            margin-top: 25px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .real-world-example h3 {
+            text-align: left;
+            margin-top: 0;
+            color: #2980b9;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .real-world-example h4 {
+            text-align: left;
+            color: #34495e;
+        }
+        .summary-box {
+            background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+            border: none;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(26, 188, 156, 0.3);
+        }
+        .summary-box h4 {
+            color: white;
+            text-align: left;
+            margin-top: 0;
+        }
+        .matrix-mode-btn.active {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-color: #e74c3c;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+        #matrix-visualization-controls {
+            padding: 15px 0;
+        }
+        .matrix-label {
+            font-size: 1.2em;
+            font-weight: bold;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            text-anchor: middle;
+            fill: #2c3e50;
+        }
+        .dim-label {
+            font-size: 0.9em;
+            fill: #7f8c8d;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            text-anchor: middle;
+        }
+        .op-label {
+            font-size: 2.2em;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            fill: #2c3e50;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+        .annotation-text {
+            font-size: 13px;
+            font-style: italic;
+            text-anchor: middle;
+            fill: #34495e;
+            font-weight: 500;
+        }
+        .annotation-line {
+            stroke: #95a5a6;
+            stroke-width: 2px;
+            stroke-dasharray: 5 3;
+        }
+        .arrow {
+            stroke: #95a5a6;
+            stroke-width: 2px;
+            marker-end: url(#arrow-head);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Attention Mechanisms in Mistral-Inference</h1>
+        <p class="intro">
+            This page provides an interactive exploration of two key attention mechanisms used in modern transformer models like Mistral: <strong>Grouped Query Attention (GQA)</strong> and <strong>Sliding Window Attention (SWA)</strong>. These techniques are crucial for making large models efficient in terms of memory and computation. The visualizations below are designed to build intuition and connect these concepts to their actual implementation in the <code>mistral-inference</code> library.
+        </p>
+        
+        <section id="gqa-section">
+            <h2>Grouped Query Attention (GQA)</h2>
+            <p>Grouped Query Attention is an optimization that sits between full Multi-Head Attention (MHA) and the more aggressive Multi-Query Attention (MQA). In MHA, every query head has its own key (K) and value (V) head. In MQA, all query heads share a single K/V pair. GQA provides a balance: it creates several groups of query heads, and all heads within a group share a single K/V pair. This significantly reduces the size of the KV cache, a major memory bottleneck during inference.</p>
+            
+            <div class="code-block">
+                <h4>Code from <code>transformer_layers.py</code></h4>
+                <pre>
+<span class="keyword">class</span> <span class="class">Attention</span>(nn.Module):
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, n_heads: int, n_kv_heads: int, ...):
+        <span class="comment"># For Mistral-7B: n_heads=32, n_kv_heads=8</span>
+        <span class="keyword">self</span>.n_heads = n_heads
+        <span class="keyword">self</span>.n_kv_heads = n_kv_heads
+        <span class="keyword">self</span>.repeats = <span class="keyword">self</span>.n_heads // <span class="keyword">self</span>.n_kv_heads <span class="comment"># 32 // 8 = 4</span>
+
+    <span class="keyword">def</span> <span class="function">forward</span>(<span class="keyword">self</span>, x, ...):
+        <span class="comment"># ... project x to xq, xk, xv ...</span>
+        <span class="comment"># xk and xv have n_kv_heads</span>
+
+        <span class="comment"># Repeat K and V to match the number of Q heads</span>
+        key, val = <span class="function">repeat_kv</span>(xk, xv, <span class="keyword">self</span>.repeats, dim=<span class="number">2</span>)
+        <span class="comment"># key and val now have n_heads</span>
+
+<span class="keyword">def</span> <span class="function">repeat_kv</span>(keys, values, repeats, dim):
+    <span class="comment"># This is the core of GQA's grouping mechanism</span>
+    keys = torch.<span class="function">repeat_interleave</span>(keys, repeats=repeats, dim=dim)
+    values = torch.<span class="function">repeat_interleave</span>(values, repeats=repeats, dim=dim)
+    <span class="keyword">return</span> keys, values</pre>
+            </div>
+
+            <div class="controls">
+                <h4>Interactive GQA Visualization</h4>
+                <p>This visualization uses 16 Query heads for clarity. Mistral-7B uses 32 Q heads and 8 KV heads (4 groups).</p>
+                <label for="gqa-slider">Number of KV Groups (G):</label>
+                <input type="range" id="gqa-slider" min="1" max="8" value="4" step="1">
+                <span id="gqa-slider-value">4</span>
+            </div>
+            <div id="gqa-visualization" class="visualization"></div>
+        </section>
+
+        <section id="swa-section">
+            <h2>Sliding Window Attention (SWA)</h2>
+            <p>Standard attention has quadratic complexity with respect to sequence length, making it slow and memory-intensive for long contexts. Sliding Window Attention constrains each token's attention to a fixed-size window of recent tokens. This is implemented efficiently using a <strong>circular buffer</strong> for the KV cache, where new tokens overwrite the oldest ones once the cache is full. This keeps memory usage constant and computation linear for long sequences.</p>
+
+            <div class="code-block">
+                <h4>Code from <code>cache.py</code></h4>
+                <pre>
+<span class="keyword">class</span> <span class="class">BufferCache</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, ..., sliding_window: int):
+        <span class="comment"># For Mistral-7B, sliding_window is 4096</span>
+        self.cache_sizes = <span class="function">get_cache_sizes</span>(..., sliding_window)
+        <span class="comment"># Allocate cache with a fixed size `sliding_window`</span>
+        <span class="keyword">self</span>.cache_k = torch.<span class="function">empty</span>((..., cache_size, ...))
+
+    <span class="keyword">def</span> <span class="function">_get_input_metadata_layer</span>(<span class="keyword">self</span>, cache_size, seqlens, seqpos):
+        <span class="comment"># `positions` are absolute token positions, e.g., [..., 4096, 4097, ...]</span>
+        <span class="comment"># `cache_size` is the sliding_window size</span>
+        
+        <span class="comment"># This line implements the circular buffer!</span>
+        cache_positions = positions % cache_size
+        <span class="comment"># A token at absolute position 4097 goes into cache index 1 (4097 % 4096)</span></pre>
+            </div>
+
+            <div class="controls">
+                <h4>Interactive SWA Visualization</h4>
+                <button id="swa-prev">Previous Token</button>
+                <button id="swa-next">Next Token</button>
+                <label for="window-slider">Window Size (W):</label>
+                <input type="range" id="window-slider" min="2" max="8" value="4">
+                <span id="window-slider-value">4</span>
+            </div>
+            <div id="swa-visualization" class="visualization"></div>
+        </section>
+
+        <section id="matrix-section">
+            <h2>The Attention Matrix: A Deeper Dive</h2>
+            <p class="explanation">
+                The core of attention is the <code>softmax(Q @ K.T) @ V</code> computation. This visualization breaks down these matrix operations to show what's happening under the hood. It illustrates the difference between the initial "prefill" step (processing the prompt) and the step-by-step "autoregressive generation" that follows, including how Sliding Window Attention changes the calculation.
+            </p>
+            <div class="controls">
+                <button id="prefill-btn" class="matrix-mode-btn active">Prefill / Full Attention</button>
+                <button id="autoregressive-btn" class="matrix-mode-btn">Autoregressive Generation</button>
+                <button id="swa-matrix-btn" class="matrix-mode-btn">Sliding Window (Inference)</button>
+            </div>
+            <div id="matrix-visualization-controls" class="controls"></div>
+            <div id="matrix-visualization" class="visualization"></div>
+        </section>
+
+        <section id="real-world-section">
+            <h2>Real-World Scenario: A Deeper Look at Mistral-7B</h2>
+            <p class="explanation">Let's walk through a concrete example using the actual parameters from the Mistral-7B model to see the profound impact of these optimizations. We'll assume the model dimension (<code>dim</code>) is 4096 and the head dimension (<code>head_dim</code>) is 128.</p>
+        
+            <div class="real-world-example">
+                <h3>1. Grouped Query Attention (GQA) in Action</h3>
+                <p>Mistral-7B uses GQA to drastically reduce its memory footprint, especially in the KV cache which is critical for fast generation.</p>
+                <div class="code-block">
+                    <h4>Mistral-7B GQA Parameters</h4>
+                    <pre>
+- Model Dimension (dim): 4096
+- Total Query Heads (n_heads): 32
+- Key/Value Heads (n_kv_heads): 8
+- Head Dimension (head_dim): 128  (since 4096 / 32 = 128)
+- Grouping Factor (repeats): 4  (since 32 / 8 = 4)
+                    </pre>
+                </div>
+                <h4>KV Cache Memory Calculation</h4>
+                <p>The biggest impact is on the Key-Value (KV) cache. For a sequence length of <strong>8192 tokens</strong> using 16-bit floats (2 bytes), the difference is stark:</p>
+                <ul>
+                    <li><strong>Standard MHA Cache</strong>: 
+                        `8192 (tokens) * 32 (heads) * 128 (dim) * 2 (K/V) * 2 (bytes/fp16)` = <strong>134.2 MB</strong> per layer.
+                    </li>
+                    <li><strong>GQA Cache (Mistral-7B)</strong>: 
+                        `8192 (tokens) * 8 (kv_heads) * 128 (dim) * 2 (K/V) * 2 (bytes/fp16)` = <strong>33.5 MB</strong> per layer.
+                    </li>
+                </ul>
+                <p>With GQA, the KV cache is <strong>4 times smaller</strong>. For a 32-layer model, this is a difference of over <strong>3.2 GB</strong>, which is often the margin that determines if a model can run on available hardware.</p>
+            </div>
+        
+            <div class="real-world-example">
+                <h3>2. Sliding Window Attention (SWA) in Action</h3>
+                <p>Mistral-7B uses a sliding window of <strong>4096 tokens</strong>. This means any given token can only "see" the previous 4096 tokens, regardless of total sequence length. This prevents memory and computation from growing quadratically.</p>
+                <h4>Scenario: Processing a 10,000-token document</h4>
+                <p>Let's trace what happens when the model calculates attention for the token at position <strong>9000</strong>.</p>
+                <ol>
+                    <li><strong>Attention Scope</strong>: The query at token 9000 can only attend to keys from tokens in the range `[9000 - 4096 + 1, 9000]`, which is `[4905, 9000]`. All keys from tokens 0 to 4904 are ignored for this calculation, saving a huge amount of computation.</li>
+                    <li><strong>Circular Buffer</strong>: The KV cache only ever needs to store 4096 tokens per head. Let's see where the key/value for token 9000 is stored in the cache.
+                    <div class="code-block">
+                        <pre>
+<span class="comment"># From cache.py: cache_positions = positions % cache_size</span>
+cache_position = 9000 % 4096 = <span class="number">808</span></pre>
+                    </div>
+                    The KV pair for token 9000 is written to index `808` of the cache, overwriting whatever was there before (likely the KV pair for token `9000 - 4096 = 4904`).
+                    </li>
+                </ol>
+            </div>
+        
+            <div class="real-world-example">
+                <h3>3. Combined Power: GQA + SWA</h3>
+                <p>Mistral-7B uses both techniques together, creating one of the most efficient architectures for its size.</p>
+                <h4>Final KV Cache Calculation for Mistral-7B</h4>
+                <p>By combining a fixed-size window (SWA) with fewer KV heads (GQA), the memory requirement becomes constant and small.</p>
+                <ul>
+                    <li><strong>GQA + SWA KV Cache Size</strong>: 
+                        `4096 (window) * 8 (kv_heads) * 128 (dim) * 2 (K/V) * 2 (bytes/fp16)` = <strong>16.7 MB</strong> per layer.
+                    </li>
+                </ul>
+                <div class="summary-box">
+                    <h4>Summary of Memory Savings (per layer)</h4>
+                    <ul>
+                        <li><strong>Standard MHA (at 8k seq len)</strong>: 128 MB</li>
+                        <li><strong>Mistral-7B with GQA + SWA</strong>: 16.7 MB</li>
+                    </ul>
+                    <p>This is a <strong>~7.6x reduction</strong> in KV cache memory compared to a standard transformer, enabling Mistral-7B to handle a large context window much more efficiently.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Beginner-Friendly KV Cache Walkthrough -->
+        <section id="kv-beginner-section">
+            <h2>KV Cache Walkthrough (Beginner-Friendly)</h2>
+            <div class="controls">
+                <label for="kv-token-slider">Current Token:</label>
+                <input type="range" id="kv-token-slider" min="0" max="29" value="10">
+                <span id="kv-token-val">10</span>
+                <label for="kv-window-slider">Window Size:</label>
+                <input type="range" id="kv-window-slider" min="2" max="12" value="8">
+                <span id="kv-window-val">8</span>
+            </div>
+            <div id="kv-beginner-visualization" class="visualization"></div>
+        </section>
+
+        <div class="tooltip"></div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- GQA Visualization ---
+        const gqaSlider = document.getElementById('gqa-slider');
+        const gqaSliderValue = document.getElementById('gqa-slider-value');
+        const tooltip = d3.select('.tooltip');
+        const nHeads = 16;
+        const headSize = 25;
+        const spacing = 5;
+
+        function drawGQA(groups) {
+            if (nHeads % groups !== 0) return;
+            gqaSliderValue.textContent = groups;
+            const svg = d3.select("#gqa-visualization").html("").append("svg")
+                .attr("width", '100%')
+                .attr("height", 250);
+
+            const headsPerGroup = nHeads / groups;
+            const queryColor = "#4682B4";
+            const kvColor = "#d95f02";
+
+            const queryHeads = svg.selectAll("rect.query").data(d3.range(nHeads)).enter().append("rect")
+                .attr("class", "query").attr("x", (d, i) => 20 + i * (headSize + spacing)).attr("y", 50)
+                .attr("width", headSize).attr("height", headSize).attr("fill", queryColor)
+                .on('mouseover', (event, d) => {
+                    tooltip.transition().style('opacity', .9);
+                    tooltip.html(`Query Head ${d}`).style('left', (event.pageX + 5) + 'px').style('top', (event.pageY - 28) + 'px');
+                }).on('mouseout', () => tooltip.transition().style('opacity', 0));
+
+            const kvHeads = svg.selectAll("rect.kv").data(d3.range(groups)).enter().append("rect")
+                .attr("class", "kv").attr("x", (d, i) => 20 + i * (headsPerGroup * (headSize + spacing)))
+                .attr("y", 150).attr("width", headsPerGroup * (headSize + spacing) - spacing).attr("height", headSize)
+                .attr("fill", kvColor)
+                .on('mouseover', (event, d) => {
+                    tooltip.transition().style('opacity', .9);
+                    tooltip.html(`KV Group ${d}`).style('left', (event.pageX + 5) + 'px').style('top', (event.pageY - 28) + 'px');
+                }).on('mouseout', () => tooltip.transition().style('opacity', 0));
+
+            svg.selectAll("path.link").data(d3.range(nHeads)).enter().append("path")
+                .attr("d", d => {
+                    const qX = 20 + d * (headSize + spacing) + headSize / 2;
+                    const qY = 50 + headSize;
+                    const groupIndex = Math.floor(d / headsPerGroup);
+                    const kvX = 20 + groupIndex * (headsPerGroup * (headSize + spacing)) + (headsPerGroup * (headSize + spacing) - spacing) / 2;
+                    const kvY = 150;
+                    return `M${qX},${qY} C${qX},${qY + 40} ${kvX},${kvY - 40} ${kvX},${kvY}`;
+                }).attr("stroke", "#aaa").attr("stroke-width", 2).attr("fill", "none");
+
+            svg.append("text").attr("x", 20).attr("y", 30).text("Query Heads (n_heads)").style("font-weight", "bold");
+            svg.append("text").attr("x", 20).attr("y", 130).text("Key/Value Groups (n_kv_heads)").style("font-weight", "bold");
+            svg.append("text").attr("x", 20).attr("y", 220).text(`KV Cache Memory Reduction: ${((1 - groups / nHeads) * 100).toFixed(0)}% (vs MHA)`).style("font-style", "italic");
+        }
+
+        gqaSlider.addEventListener('input', (event) => drawGQA(parseInt(event.target.value)));
+        drawGQA(parseInt(gqaSlider.value));
+
+        // --- SWA Visualization ---
+        const swaPrevBtn = document.getElementById('swa-prev');
+        const swaNextBtn = document.getElementById('swa-next');
+        const windowSlider = document.getElementById('window-slider');
+        const windowSliderValue = document.getElementById('window-slider-value');
+        let currentToken = 8;
+        const seqLength = 20;
+        const tokenSize = 35;
+        const seqSpacing = 5;
+
+        function drawSWA() {
+            let windowSize = parseInt(windowSlider.value);
+            windowSliderValue.textContent = windowSize;
+            
+            const svg = d3.select("#swa-visualization").html("").append("svg")
+                .attr("width", '100%')
+                .attr("viewBox", `0 0 ${seqLength * (tokenSize + seqSpacing) + 40} 400`) // Use viewBox for responsiveness
+                .attr("preserveAspectRatio", "xMidYMid meet");
+
+            // --- 1. Token Sequence ---
+            svg.append("text").attr("x", 20).attr("y", 20).text("Token Sequence (t)").style("font-weight", "bold").style("font-size", "14px");
+            const tokens = svg.selectAll("g.token").data(d3.range(seqLength)).enter().append("g")
+                .attr("transform", (d, i) => `translate(${20 + i * (tokenSize + seqSpacing)}, 30)`);
+
+            tokens.append("rect")
+                .attr("width", tokenSize)
+                .attr("height", tokenSize)
+                .attr("rx", 5) // rounded corners
+                .attr("stroke", "#333")
+                .attr("stroke-width", d => d === currentToken ? 3 : 1)
+                .attr("fill", d => {
+                    if (d === currentToken) return "#4682B4"; // current query
+                    if (d < currentToken && d >= currentToken - windowSize) return "#d95f02"; // in window
+                    return "#ddd"; // outside window
+                })
+                .style("filter", d => d === currentToken ? "drop-shadow(0px 0px 5px #4682B4)" : "none");
+
+            tokens.append("text").attr("x", tokenSize / 2).attr("y", tokenSize / 2 + 5).attr("text-anchor", "middle").text(d => `${d}`);
+            
+            // --- 2. Circular KV Cache ---
+            const cacheRadius = 80;
+            const cacheCenterX = (seqLength * (tokenSize + seqSpacing)) / 2 + 10;
+            const cacheCenterY = 220;
+
+            svg.append("text").attr("x", cacheCenterX).attr("y", cacheCenterY - cacheRadius - 40).text("KV Cache (Circular Buffer)").style("font-weight", "bold").attr("text-anchor", "middle").style("font-size", "14px");
+
+            // Dashed circle to show the path
+            svg.append("circle")
+                .attr("cx", cacheCenterX)
+                .attr("cy", cacheCenterY)
+                .attr("r", cacheRadius)
+                .attr("stroke", "#aaa")
+                .attr("stroke-dasharray", "5,5")
+                .attr("fill", "none");
+
+            const cacheSlots = svg.selectAll("g.cache-slot").data(d3.range(windowSize)).enter().append("g");
+
+            cacheSlots.attr("transform", d => {
+                const angle = (d / windowSize) * 2 * Math.PI - Math.PI / 2; // Start from top
+                const x = cacheCenterX + cacheRadius * Math.cos(angle);
+                const y = cacheCenterY + cacheRadius * Math.sin(angle);
+                return `translate(${x}, ${y})`;
+            });
+
+            cacheSlots.append("rect")
+                .attr("x", -tokenSize / 2)
+                .attr("y", -tokenSize / 2)
+                .attr("width", tokenSize)
+                .attr("height", tokenSize)
+                .attr("rx", 5)
+                .attr("stroke", "#333")
+                .attr("fill", d => {
+                    const cachePos = currentToken % windowSize;
+                    return d === cachePos ? "#fafad2" : "#f0f0f0";
+                })
+                .style("filter", d => {
+                    const cachePos = currentToken % windowSize;
+                    return d === cachePos ? "drop-shadow(0px 0px 5px #e67e22)" : "none";
+                });
+            
+            cacheSlots.append("text")
+                .attr("class", "cache-token-text")
+                .attr("text-anchor", "middle").attr("dy", ".35em")
+                .style("font-size", "12px")
+                .text(d => {
+                    let tokenInSlot;
+                    // Find the most recent token that would be in this slot
+                    if ((currentToken - (currentToken % windowSize) + d) <= currentToken) {
+                        tokenInSlot = currentToken - (currentToken % windowSize) + d;
+                    } else {
+                        tokenInSlot = currentToken - (currentToken % windowSize) + d - windowSize;
+                    }
+                    return tokenInSlot >= 0 ? `t${tokenInSlot}` : '';
+                });
+            
+            cacheSlots.append("text").attr("class", "cache-index-text")
+                .attr("text-anchor", "middle").attr("y", tokenSize/2 + 12).style("font-size", "10px").text(d => `idx ${d}`);
+            
+            // --- 3. Arrow from Token to Cache ---
+            const tokenX = 20 + currentToken * (tokenSize + seqSpacing) + tokenSize / 2;
+            const tokenY = 30 + tokenSize;
+            
+            const cachePos = currentToken % windowSize;
+            const angle = (cachePos / windowSize) * 2 * Math.PI - Math.PI / 2;
+            const cacheX = cacheCenterX + cacheRadius * Math.cos(angle);
+            const cacheY = cacheCenterY + cacheRadius * Math.sin(angle);
+
+            // Use a marker for the arrowhead
+            svg.append('defs').append('marker')
+                .attr('id', 'arrow-sva')
+                .attr('viewBox', '0 -5 10 10')
+                .attr('refX', 8)
+                .attr('refY', 0)
+                .attr('markerWidth', 6)
+                .attr('markerHeight', 6)
+                .attr('orient', 'auto')
+              .append('path')
+                .attr('d', 'M0,-5L10,0L0,5')
+                .attr('fill', '#e74c3c');
+
+            const path = d3.path();
+            path.moveTo(tokenX, tokenY);
+            path.quadraticCurveTo(cacheCenterX, tokenY + 60, cacheX, cacheY);
+
+            svg.append("path")
+               .attr("d", path.toString())
+               .attr("stroke", "#e74c3c")
+               .attr("stroke-width", 2)
+               .attr("fill", "none")
+               .attr("marker-end", "url(#arrow-sva)")
+               .style("filter", "drop-shadow(0px 0px 3px #e74c3c)");
+
+            // --- 4. Legend ---
+            const legendY = cacheCenterY + cacheRadius + 60;
+            const legend = [
+                { color: "#4682B4", text: "Current Query Token" },
+                { color: "#d95f02", text: "In Attention Window (Logical Cache)" },
+                { color: "#fafad2", text: "Updated Cache Slot (Physical)" }
+            ];
+
+            const legendG = svg.append("g").attr("transform", `translate(20, ${legendY})`);
+
+            legend.forEach((item, i) => {
+                const g = legendG.append("g").attr("transform", `translate(0, ${i * 25})`);
+                g.append("rect").attr("x", 0).attr("y", 0).attr("width", 15).attr("height", 15).style("fill", item.color).attr("stroke", "#333");
+                g.append("text").attr("x", 25).attr("y", 12).text(item.text).style("font-size", "12px");
+            });
+        }
+
+        swaNextBtn.addEventListener('click', () => {
+            if (currentToken < seqLength - 1) currentToken++;
+            drawSWA();
+        });
+        swaPrevBtn.addEventListener('click', () => {
+            if (currentToken > 0) currentToken--;
+            drawSWA();
+        });
+        windowSlider.addEventListener('input', drawSWA);
+        drawSWA();
+
+        // --- Matrix Visualization ---
+        const matrixVisState = {
+            mode: 'prefill', // prefill, autoregressive, swa
+            prefill_T: 4,
+            autoregressive_T: 1,
+            swa_T: 8,
+            swa_W: 4
+        };
+
+        const prefillBtn = document.getElementById('prefill-btn');
+        const autoregressiveBtn = document.getElementById('autoregressive-btn');
+        const swaMatrixBtn = document.getElementById('swa-matrix-btn');
+        const matrixVisControls = document.getElementById('matrix-visualization-controls');
+        const matrixVisContainer = d3.select("#matrix-visualization");
+
+        const modeButtons = [prefillBtn, autoregressiveBtn, swaMatrixBtn];
+
+        function setActiveButton(activeBtn) {
+            modeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn === activeBtn);
+            });
+        }
+
+        prefillBtn.addEventListener('click', () => {
+            matrixVisState.mode = 'prefill';
+            setActiveButton(prefillBtn);
+            renderMatrixVis();
+        });
+        autoregressiveBtn.addEventListener('click', () => {
+            matrixVisState.mode = 'autoregressive';
+            setActiveButton(autoregressiveBtn);
+            renderMatrixVis();
+        });
+        swaMatrixBtn.addEventListener('click', () => {
+            matrixVisState.mode = 'swa';
+            setActiveButton(swaMatrixBtn);
+            renderMatrixVis();
+        });
+        
+        function drawMatrix(svg, { x, y, rows, cols, cellW, cellH, label, highlights = [] }) {
+            const g = svg.append('g').attr('transform', `translate(${x}, ${y})`);
+            
+            const totalW = cols * cellW;
+            const totalH = rows * cellH;
+
+            const defs = svg.select('defs').empty() ? svg.append('defs') : svg.select('defs');
+            
+            // Reusable gradients for matrix fills
+            const gradientId = `grad-${label.replace(/[^a-zA-Z0-9]/g, '')}`;
+            if (defs.select(`#${gradientId}`).empty()) {
+                const gradient = defs.append('linearGradient')
+                    .attr('id', gradientId)
+                    .attr('x1', '0%').attr('y1', '0%')
+                    .attr('x2', '100%').attr('y2', '100%');
+                
+                const colorSchemes = {
+                    'Q': ['#81c784', '#4caf50'], 
+                    'KT': ['#64b5f6', '#2196f3'], 
+                    'QKT': ['#ffb74d', '#ff9800'],
+                    'V': ['#9575cd', '#673ab7'],
+                    'Output': ['#f06292', '#e91e63'],
+                    'qt': ['#81c784', '#4caf50'],
+                    'KcacheT': ['#64b5f6', '#2196f3'],
+                    'scores': ['#ffb74d', '#ff9800'],
+                    'Vcache': ['#9575cd', '#673ab7'],
+                    'outputt': ['#f06292', '#e91e63'],
+                    'KwindowT': ['#64b5f6', '#2196f3'],
+                    'Vwindow': ['#9575cd', '#673ab7']
+                };
+                const baseLabel = label.replace(/\./g, '').split('_')[0];
+                const scheme = colorSchemes[baseLabel] || ['#e0e0e0', '#bdbdbd'];
+                gradient.append('stop').attr('offset', '0%').attr('stop-color', scheme[0]);
+                gradient.append('stop').attr('offset', '100%').attr('stop-color', scheme[1]);
+            }
+
+            // A single rectangle for the matrix body for better performance and cleaner look
+            g.append('rect')
+                .attr('x', 0).attr('y', 0)
+                .attr('width', totalW).attr('height', totalH)
+                .attr('rx', 3).attr('ry', 3)
+                .attr('fill', `url(#${gradientId})`)
+                .attr('stroke', 'rgba(0,0,0,0.2)')
+                .attr('stroke-width', 1);
+
+            // Add highlights on top (e.g., for causal mask or active window)
+            highlights.forEach(h => {
+                g.append('rect')
+                    .attr('x', h.col * cellW).attr('y', h.row * cellH)
+                    .attr('width', cellW).attr('height', cellH)
+                    .attr('fill', h.color)
+                    .attr('opacity', 0.5);
+            });
+
+            // Subtle grid lines
+            for (let r = 1; r < rows; r++) {
+                g.append('line').attr('x1', 0).attr('y1', r * cellH).attr('x2', totalW).attr('y2', r * cellH).attr('stroke', 'rgba(255,255,255,0.2)');
+            }
+            for (let c = 1; c < cols; c++) {
+                g.append('line').attr('x1', c * cellW).attr('y1', 0).attr('x2', c * cellW).attr('y2', totalH).attr('stroke', 'rgba(255,255,255,0.2)');
+            }
+
+            // Clean matrix label
+            g.append('text')
+                .attr('class', 'matrix-label')
+                .attr('x', totalW / 2)
+                .attr('y', -8)
+                .text(label);
+        }
+        
+        function drawPrefillVis(T) {
+            matrixVisControls.innerHTML = `
+                <label for="prefill-slider">Sequence Length (T):</label>
+                <input type="range" id="prefill-slider" min="2" max="10" value="${T}">
+                <span id="prefill-slider-value">${T}</span>`;
+            
+            document.getElementById('prefill-slider').addEventListener('input', e => {
+                matrixVisState.prefill_T = parseInt(e.target.value);
+                document.getElementById('prefill-slider-value').textContent = matrixVisState.prefill_T;
+                renderMatrixVis();
+            });
+
+            const svg = matrixVisContainer.html("").append("svg").attr("height", 250);
+            const defs = svg.append('defs');
+
+            const cellW = 15, cellH = 15;
+            const d = 4;
+            const y_center = 110;
+            const opGap = 40;
+            let current_x = 50;
+            
+            const drawOperator = (x, y, op) => svg.append('text').attr('class', 'op-label').attr('x', x).attr('y', y).text(op);
+
+            // Q
+            const q_w = d * cellW, q_h = T * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - q_h / 2, rows: T, cols: d, cellW, cellH, label: 'Q'});
+            current_x += q_w;
+            
+            drawOperator(current_x + opGap / 2, y_center, '×');
+            current_x += opGap;
+            
+            // K.T
+            const kt_w = T * cellW, kt_h = d * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - kt_h / 2, rows: d, cols: T, cellW, cellH, label: 'K.T'});
+            current_x += kt_w;
+
+            drawOperator(current_x + opGap / 2, y_center, '=');
+            current_x += opGap;
+
+            // QK.T with Causal Mask
+            const qkt_w = T * cellW, qkt_h = T * cellH;
+            const qktHighlights = [];
+            for (let r = 0; r < T; r++) { for (let c = r + 1; c < T; c++) qktHighlights.push({row: r, col: c, color: '#2c3e50'}); }
+            drawMatrix(svg, {x: current_x, y: y_center - qkt_h / 2, rows: T, cols: T, cellW, cellH, label: 'Q·K.T', highlights: qktHighlights});
+            const qkt_x_center = current_x;
+            current_x += qkt_w;
+
+            // Softmax
+            // svg.append('text').attr('class', 'op-label').attr('x', qkt_x_center - 15).attr('y', y_center).text('softmax(').attr('text-anchor', 'end');
+            // drawOperator(current_x + 15, y_center, ')');
+            // current_x += opGap;
+
+            drawOperator(current_x + opGap / 2, y_center, '×');
+            current_x += opGap;
+
+            // V
+            const v_w = d * cellW, v_h = T * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - v_h / 2, rows: T, cols: d, cellW, cellH, label: 'V'});
+            current_x += v_w;
+
+            drawOperator(current_x + opGap / 2, y_center, '=');
+            current_x += opGap;
+
+            // Result
+            const out_w = d * cellW, out_h = T * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - out_h / 2, rows: T, cols: d, cellW, cellH, label: 'Output'});
+            
+            svg.attr("width", current_x + out_w + 50);
+        }
+
+        function drawAutoregressiveVis(T) {
+             matrixVisControls.innerHTML = `
+                <button id="ar-prev">Prev Token</button>
+                <button id="ar-next">Next Token</button>
+                <span>Current Token (t): ${T}</span>
+             `;
+             document.getElementById('ar-next').addEventListener('click', () => { if (matrixVisState.autoregressive_T < 10) { matrixVisState.autoregressive_T++; renderMatrixVis(); } });
+             document.getElementById('ar-prev').addEventListener('click', () => { if (matrixVisState.autoregressive_T > 1) { matrixVisState.autoregressive_T--; renderMatrixVis(); } });
+
+            const svg = matrixVisContainer.html("").append("svg").attr("height", 300);
+            const defs = svg.append('defs');
+            const cellW = 15, cellH = 15;
+            const d = 4;
+            const y_center = 150;
+            const opGap = 40;
+            let current_x = 50;
+
+            const drawOperator = (x, y, op) => svg.append('text').attr('class', 'op-label').attr('x', x).attr('y', y).text(op);
+            
+            // q_t
+            const q_w = d * cellW, q_h = 1 * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - q_h / 2, rows: 1, cols: d, cellW, cellH, label: 'q_t'});
+            current_x += q_w;
+
+            drawOperator(current_x + opGap / 2, y_center, '×');
+            current_x += opGap;
+
+            // K_cache.T
+            const kt_w = T * cellW, kt_h = d * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - kt_h / 2, rows: d, cols: T, cellW, cellH, label: 'K_cache.T'});
+            current_x += kt_w;
+
+            drawOperator(current_x + opGap / 2, y_center, '=');
+            current_x += opGap;
+
+            // scores
+            const score_w = T * cellW, score_h = 1 * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - score_h / 2, rows: 1, cols: T, cellW, cellH, label: 'scores'});
+            current_x += score_w;
+
+            drawOperator(current_x + opGap / 2, y_center, '×');
+            current_x += opGap;
+            
+            // V_cache
+            const v_w = d * cellW, v_h = T * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - v_h / 2, rows: T, cols: d, cellW, cellH, label: 'V_cache'});
+            current_x += v_w;
+            
+            drawOperator(current_x + opGap / 2, y_center, '=');
+            current_x += opGap;
+
+            // Result
+            const out_w = d * cellW, out_h = 1 * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - out_h / 2, rows: 1, cols: d, cellW, cellH, label: 'output_t'});
+            
+            svg.attr("width", current_x + out_w + 50);
+        }
+
+        function drawSwaMatrixVis(T, W) {
+             matrixVisControls.innerHTML = `
+                <label for="swa-t-slider">Token (T):</label>
+                <input type="range" id="swa-t-slider" min="1" max="12" value="${T}">
+                <span id="swa-t-val">${T}</span>
+                <label for="swa-w-slider">Window (W):</label>
+                <input type="range" id="swa-w-slider" min="2" max="6" value="${W}">
+                <span id="swa-w-val">${W}</span>
+             `;
+             document.getElementById('swa-t-slider').addEventListener('input', e => { matrixVisState.swa_T = parseInt(e.target.value); document.getElementById('swa-t-val').textContent = matrixVisState.swa_T; renderMatrixVis(); });
+             document.getElementById('swa-w-slider').addEventListener('input', e => { matrixVisState.swa_W = parseInt(e.target.value); document.getElementById('swa-w-val').textContent = matrixVisState.swa_W; renderMatrixVis(); });
+
+            const svg = matrixVisContainer.html("").append("svg").attr("height", 350);
+            const defs = svg.append('defs');
+            const cellW = 15, cellH = 15;
+            const d = 4;
+            const startToken = Math.max(0, T - W);
+            const effectiveW = Math.min(T, W);
+            
+            // --- Top: Conceptual K Cache ---
+            const conceptual_y = 80;
+            svg.append('text').attr('class','matrix-label').attr('x', 20).attr('y', 20).text('Full K Cache (Conceptual View)');
+            
+            // Draw full cache as grayed out
+            const full_kt_w = T * cellW, full_kt_h = d * cellH;
+            const fullHighlights = [];
+            for (let r = 0; r < d; r++) { for (let c = 0; c < T; c++) fullHighlights.push({ row: r, col: c, color: '#e0e0e0'}); }
+            // drawMatrix(svg, {x: 20, y: conceptual_y, rows: d, cols: T, cellW, cellH, label: 'Full K.T', highlights: fullHighlights});
+
+            // Draw active window on top
+            const windowHighlights = [];
+            for (let c = startToken; c < T; c++) { for (let r = 0; r < d; r++) windowHighlights.push({row: r, col: c, color: '#64b5f6'}); }
+            drawMatrix(svg, {x: 20, y: conceptual_y, rows: d, cols: T, cellW, cellH, label: '', highlights: windowHighlights});
+            
+            const window_rect_x = 20 + startToken * cellW;
+            const window_rect_w = effectiveW * cellW;
+            svg.append('rect').attr('x', window_rect_x).attr('y', conceptual_y).attr('width', window_rect_w).attr('height', d * cellH).attr('stroke', '#d32f2f').attr('stroke-width', 2.5).attr('fill', 'none');
+            svg.append('text').attr('class','annotation-text').attr('x', window_rect_x + window_rect_w/2).attr('y', conceptual_y - 10).text('Attention Window');
+
+            // --- Bottom: Computation Visualization ---
+            const y_center = 250;
+            const opGap = 35;
+            let current_x = 20;
+            const drawOperator = (x, y, op) => svg.append('text').attr('class', 'op-label').attr('x', x).attr('y', y).text(op);
+            
+            // q_t
+            const q_w = d * cellW, q_h = 1 * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - q_h / 2, rows: 1, cols: d, cellW, cellH, label: `q_${T}`});
+            current_x += q_w;
+
+            drawOperator(current_x + opGap/2, y_center, '×');
+            current_x += opGap;
+
+            // K_window.T
+            const kt_w = effectiveW * cellW, kt_h = d * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - kt_h / 2, rows: d, cols: effectiveW, cellW, cellH, label: 'K_window.T'});
+            current_x += kt_w;
+
+            drawOperator(current_x + opGap/2, y_center, '=');
+            current_x += opGap;
+
+            // scores
+            const score_w = effectiveW * cellW, score_h = 1 * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - score_h / 2, rows: 1, cols: effectiveW, cellW, cellH, label: 'scores'});
+            current_x += score_w;
+
+            drawOperator(current_x + opGap/2, y_center, '×');
+            current_x += opGap;
+
+            // V_window
+            const v_w = d * cellW, v_h = effectiveW * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - v_h / 2, rows: effectiveW, cols: d, cellW, cellH, label: 'V_window'});
+            current_x += v_w;
+
+            drawOperator(current_x + opGap/2, y_center, '=');
+            current_x += opGap;
+
+            // Result
+            const out_w = d * cellW, out_h = 1 * cellH;
+            drawMatrix(svg, {x: current_x, y: y_center - out_h / 2, rows: 1, cols: d, cellW, cellH, label: 'output_t'});
+            
+            svg.attr('width', Math.max(full_kt_w + 40, current_x + out_w + 20));
+        }
+
+        function renderMatrixVis() {
+            if (matrixVisState.mode === 'prefill') {
+                drawPrefillVis(matrixVisState.prefill_T);
+            } else if (matrixVisState.mode === 'autoregressive') {
+                drawAutoregressiveVis(matrixVisState.autoregressive_T);
+            } else if (matrixVisState.mode === 'swa') {
+                drawSwaMatrixVis(matrixVisState.swa_T, matrixVisState.swa_W);
+            }
+        }
+        
+        renderMatrixVis();
+
+        // === Beginner-Friendly KV Cache Visualization ===
+        const kvTokenSlider = document.getElementById('kv-token-slider');
+        const kvWindowSlider = document.getElementById('kv-window-slider');
+        const kvTokenVal = document.getElementById('kv-token-val');
+        const kvWindowVal = document.getElementById('kv-window-val');
+
+        const kvTokenCount = 30;
+        let kvCurrentToken = parseInt(kvTokenSlider.value);
+        let kvWindowSize = parseInt(kvWindowSlider.value);
+
+        function drawKvBeginner() {
+            kvTokenVal.textContent = kvCurrentToken;
+            kvWindowVal.textContent = kvWindowSize;
+
+            const svg = d3.select('#kv-beginner-visualization').html('').append('svg')
+                .attr('width', '100%')
+                .attr('viewBox', `0 0 ${kvTokenCount * (tokenSize + seqSpacing) + 60} 220`) // responsive
+                .attr('preserveAspectRatio', 'xMidYMid meet');
+
+            const topY = 20;
+            // --- Top Row : Tokens ---
+            svg.append('text').attr('x', 20).attr('y', topY - 8).text('Token Stream').style('font-weight', 'bold').style('font-size', '14px');
+
+            const tokensG = svg.selectAll('g.kv-token').data(d3.range(kvTokenCount)).enter().append('g')
+                .attr('class', 'kv-token')
+                .attr('transform', d => `translate(${20 + d * (tokenSize + seqSpacing)}, ${topY})`);
+
+            tokensG.append('rect')
+                .attr('width', tokenSize).attr('height', tokenSize).attr('rx', 4).attr('stroke', '#333')
+                .attr('stroke-width', d => d === kvCurrentToken ? 3 : 1)
+                .attr('fill', d => {
+                    if (d === kvCurrentToken) return '#4682B4';
+                    if (d < kvCurrentToken && d >= kvCurrentToken - kvWindowSize + 1) return '#d95f02';
+                    return '#e0e0e0';
+                });
+
+            tokensG.append('text').attr('x', tokenSize / 2).attr('y', tokenSize / 2 + 5)
+                .attr('text-anchor', 'middle').attr('font-size', '12px').text(d => d);
+
+            // --- Bottom Row : Physical Cache ---
+            const cacheTopY = 120; // starting y
+            svg.append('text').attr('x', 20).attr('y', cacheTopY - 8).text('Physical KV Cache').style('font-weight', 'bold').style('font-size', '14px');
+
+            const cacheSlotsG = svg.selectAll('g.kv-cache-slot').data(d3.range(kvWindowSize)).enter().append('g')
+                .attr('class', 'kv-cache-slot')
+                .attr('transform', (d, i) => `translate(${20 + i * (tokenSize + seqSpacing)}, ${cacheTopY})`);
+
+            cacheSlotsG.append('rect').attr('width', tokenSize).attr('height', tokenSize).attr('rx', 4).attr('stroke', '#333')
+                .attr('fill', d => (kvCurrentToken % kvWindowSize === d ? '#fafad2' : '#f6f6f6'))
+                .style('filter', d => kvCurrentToken % kvWindowSize === d ? 'drop-shadow(0px 0px 4px #e67e22)' : 'none');
+
+            cacheSlotsG.append('text').attr('x', tokenSize / 2).attr('y', tokenSize / 2 + 5)
+                .attr('text-anchor', 'middle').attr('font-size', '12px')
+                .text(d => {
+                    // find latest token occupying this slot
+                    let tokenInSlot;
+                    if ((kvCurrentToken - (kvCurrentToken % kvWindowSize) + d) <= kvCurrentToken) {
+                        tokenInSlot = kvCurrentToken - (kvCurrentToken % kvWindowSize) + d;
+                    } else {
+                        tokenInSlot = kvCurrentToken - (kvCurrentToken % kvWindowSize) + d - kvWindowSize;
+                    }
+                    return tokenInSlot >= 0 ? tokenInSlot : '';
+                });
+
+            cacheSlotsG.append('text').attr('x', tokenSize / 2).attr('y', tokenSize + 14)
+                .attr('text-anchor', 'middle').attr('font-size', '10px').style('fill', '#555')
+                .text(d => `idx ${d}`);
+
+            // --- Mapping Lines ---
+            svg.selectAll('line.mapping').data(d3.range(kvCurrentToken - kvWindowSize + 1, kvCurrentToken + 1).filter(t => t >= 0))
+                .enter()
+                .append('line')
+                .attr('class', 'mapping')
+                .attr('x1', t => 20 + t * (tokenSize + seqSpacing) + tokenSize / 2)
+                .attr('y1', topY + tokenSize)
+                .attr('x2', t => 20 + (t % kvWindowSize) * (tokenSize + seqSpacing) + tokenSize / 2)
+                .attr('y2', cacheTopY)
+                .attr('stroke', t => t === kvCurrentToken ? '#e74c3c' : '#999')
+                .attr('stroke-width', t => t === kvCurrentToken ? 2 : 1)
+                .attr('stroke-dasharray', t => t === kvCurrentToken ? '0' : '3,3');
+
+            // --- Legend ---
+            const legendData = [
+                { color: '#4682B4', text: 'Current Query Token' },
+                { color: '#d95f02', text: 'Tokens in Window' },
+                { color: '#fafad2', text: 'Cache Slot Updated' }
+            ];
+            const legendG = svg.append('g').attr('transform', `translate(${20 + kvWindowSize * (tokenSize + seqSpacing) + 40}, ${cacheTopY - 10})`);
+            legendData.forEach((item, i) => {
+                const g = legendG.append('g').attr('transform', `translate(0, ${i * 22})`);
+                g.append('rect').attr('width', 16).attr('height', 16).attr('rx', 3).attr('fill', item.color).attr('stroke', '#333');
+                g.append('text').attr('x', 24).attr('y', 12).text(item.text).attr('font-size', '12px');
+            });
+        }
+
+        kvTokenSlider.addEventListener('input', e => { kvCurrentToken = parseInt(e.target.value); drawKvBeginner(); });
+        kvWindowSlider.addEventListener('input', e => { kvWindowSize = parseInt(e.target.value); drawKvBeginner(); });
+
+        drawKvBeginner();
+    });
+    </script>
+</body>
+</html> 
